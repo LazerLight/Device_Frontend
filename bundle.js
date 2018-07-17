@@ -7610,7 +7610,7 @@ function config (name) {
 },{"stream":26}],31:[function(require,module,exports){
 const Papa = require("papaparse");
 var calendarObj
-
+//browserify script.js -o bundle.js
 const parserConfig = {
   header: true
   // complete: (results, file)=> {
@@ -7618,7 +7618,7 @@ const parserConfig = {
   // }
 };
 
-$(document).ready(function() {
+$(document).ready(() => {
   $.ajax({
     url: "http://localhost:8080"
   })
@@ -7631,7 +7631,7 @@ $(document).ready(function() {
     });
 });
 
-function calendarFormat(csvFileData) {
+const calendarFormat = (csvFileData) => {
   const calendarObj = {};
   csvFileData.forEach(entry => {
 
@@ -7653,9 +7653,9 @@ function calendarFormat(csvFileData) {
     
     let isDevicePresent = calendarObj[date][type].has(id);
     if (isDevicePresent) {
-      let deviceEventOccurance = calendarObj[date][type].get(id)[status]+1 || 1
+      let deviceEvents = calendarObj[date][type].get(id)[status]+1 || 1
       let statusObj = calendarObj[date][type].get(id)
-      statusObj[status] = deviceEventOccurance
+      statusObj[status] = deviceEvents
       calendarObj[date][type].set(id, statusObj)
     } else {
       let statusObj = {};
@@ -7668,35 +7668,43 @@ function calendarFormat(csvFileData) {
   return calendarObj;
 }
 
-function returnPopularDevices(calendarObj, date, amount) {
+const returnPopularDevices = (calendarObj, date, amount) => {
   let dayMap = calendarObj[date];
   let deviceArr = [];
   dayMap.sensor.forEach((statusObj, id) => {
-    let occurances = (statusObj.online || 0) + (statusObj.offline || 0);
-    deviceArr.push([{'id': id,'type': 'sensor', 'occurances': occurances}])
+    let events = (statusObj.online || 0) + (statusObj.offline || 0);
+    deviceArr.push([{'id': id,'type': 'sensor', 'events': events}])
   })
 
   dayMap.gateway.forEach((statusObj, id) => {
-    let occurances = (statusObj.online || 0) + (statusObj.offline || 0);
-    deviceArr.push([{'id': id,'type': 'gateway', 'occurances': occurances}])
+    let events = (statusObj.online || 0) + (statusObj.offline || 0);
+    deviceArr.push([{'id': id,'type': 'gateway', 'events': events}])
 
   })
-  let sortedArray = deviceArr.sort((a, b) => a[0]["occurances"] < b[0]["occurances"]);
+  let sortedArray = deviceArr.sort((a, b) => a[0]["events"] < b[0]["events"]);
 
   let popularDeviceArray = sortedArray.slice(0, amount);
+
   return popularDeviceArray;
 }
 
-function changeFromLastWeek(calendarObj, thisWeekDate, deviceId) {
-  let lastWeekDate = new Date(thisWeekDate);
-  lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+const changeFromLastWeek = (calendarObj, thisWeekDate, deviceObj) => {
+  let deviceId = deviceObj.id;
+  let deviceType = deviceObj.type;
+  let deviceEventsThisWeek = deviceObj.events;
+ 
 
-  let lastWeekDateEv = calendarObj[lastWeekDate].get(deviceId);
-  let thisWeekDateEv = calendarObj[thisWeekDate].get(deviceId);
+  let lastWeekDateObj = new Date(thisWeekDate);
+  lastWeekDateObj.setDate(lastWeekDateObj.getDate() - 7);
+  let lastWeekDate = lastWeekDateObj.toString();
+  if (calendarObj[lastWeekDate] === undefined || !calendarObj[lastWeekDate][deviceType].has(deviceId)){
+    return 'No Information Found For This Device'
+  }
+  let lastWeekObj = calendarObj[lastWeekDate][deviceType].get(deviceId);
 
-  let percentChage = (thisWeekDateEv - lastWeekDateEv)/lastWeekDateEv
-
-  return percentChage;
+  let deviceEventsLastWeek = (lastWeekObj.online || 0) + (lastWeekObj.offline || 0);
+  let percentChange = (deviceEventsThisWeek - deviceEventsLastWeek)/deviceEventsLastWeek;
+  return `${Math.floor(percentChange * 100)}%`
 }
 $(".getDates").one('click', ()=>{
   let dateChoices = Object.keys(calendarObj)
@@ -7706,18 +7714,29 @@ $(".getDates").one('click', ()=>{
   })
 })
 
-$(document).on('click', 'option.dateInfo', (event)=>{
-  console.log('clicked')
-  const date = event.target.value;
-  let amount = 10;
 
-  let thisWeekTopTen = returnPopularDevices(calendarObj, date, amount);
-  console.log(thisWeekTopTen)
-  // thisWeekTopTen.forEach((entry) =>{
-  //   let percentChange = changeFromLastWeek(calendarObj, date, entry[0])
-  //   console.log(entry, percentChange)
-  //   entry.push(percentChange);
-  // })
-  // console.log(percentChange)
-})
+
+const populateDeviceHTML = (entry, ranking, change) => {
+  $(".popular-device").append(
+    `<tr><td>${ranking}</td>
+    <td>${entry[0].id}</td>
+    <td>${entry[0].events}</td>
+    <td>${change}</td></tr>`
+  )
+}
+
+$(document).on('click', 'option.dateInfo', (event)=>{
+  $(".popular-device-section").show();
+  $(".popular-device-header").siblings().remove();
+
+  const dateSelected = event.target.value;
+  let topNDevices = 10;
+  let thisWeekTopTen = returnPopularDevices(calendarObj, dateSelected, topNDevices);
+  
+  thisWeekTopTen.forEach((deviceEntry) =>{
+    let rank = thisWeekTopTen.indexOf(deviceEntry) + 1;
+    let percentChange = changeFromLastWeek(calendarObj, dateSelected, deviceEntry[0]);
+    populateDeviceHTML(deviceEntry, rank, percentChange);
+  })
+});
 },{"papaparse":30}]},{},[31]);
