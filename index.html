@@ -9,19 +9,44 @@
 </head>
 <body>
     <select class="getDates">
-    <option value="" disabled selected>Select a date</option>
+    <option class="get-dates-info" disabled selected>Select a date</option>
     </select> 
+
     <div class="popular-device-section">
         <table class="popular-device">
             <tr class="popular-device-header">
-                <th class="rank">Rank</th>
-                <th class="id">Device ID</th>
-                <th class="occur">Occurances on Day Selected</th>
-                <th class="change">Relative Change from Same Day Last Week</th>
+                <th>Rank</th>
+                <th>Device ID</th>gateway
+                <th>Occurances on Day Selected</th>
+                <th>Relative Change from Same Day Last Week</th>
             </tr>
-           
         </table>
     </div>
+
+    <div class="month-view">
+        <select name="device-type" id="device-type" required>
+            <option value="sensor">Sensor</option>
+            <option value="gateway">Gateway</option>
+        </select>
+        <select name="device-status" id="device-status" required>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+        </select>
+        <select class="date-month-view">
+            <option value="" disabled selected>Select a date</option>
+            </select> 
+        <button>View</button>
+    </div>
+
+    <div class="monthly-device-section">
+        <table class="monthly-device">
+            <tr class="monthly-device-header">
+                <th>Day</th>
+                <th>Total Amount of Devices</th>
+            </tr>
+        </table>
+    </div>
+
 <script
 src="https://code.jquery.com/jquery-3.3.1.min.js"
 integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="

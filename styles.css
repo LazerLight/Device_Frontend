@@ -1,4 +1,6 @@
-.popular-device-section{
+.popular-device-section,
+.monthly-device-section
+{
     display: none;
 }
 
