@@ -18,3 +18,7 @@ td, th {
 tr:nth-child(even) {
     background-color: #dddddd;
 }
+
+.error{
+    border: 2px solid red;
+}

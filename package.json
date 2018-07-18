@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "live-server": "^1.2.0",
     "papaparse": "^4.5.0"
   }
 }

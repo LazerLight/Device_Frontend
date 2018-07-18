@@ -1,11 +1,11 @@
 const Papa = require("papaparse");
 var calendarObj
+
+
+
 //browserify script.js -o bundle.js
 const parserConfig = {
   header: true
-  // complete: (results, file)=> {
-  //     console.log("Parsing complete:", results.data);
-  // }
 };
 
 $(document).ready(() => {
@@ -13,7 +13,7 @@ $(document).ready(() => {
     url: "http://localhost:8080"
   })
   .then(data => {
-    
+    console.log(x)
     calendarObj = calendarFormat(Papa.parse(data, parserConfig).data);
   })
   .fail(err => {
@@ -146,12 +146,17 @@ $(document).on('click', 'option.get-dates-info', (event)=>{
 });
 
 $('.month-view button').click((event)=>{
-  $(".popular-device-section").hide();
-  $(".monthly-device-section").show();
+ 
   let typeSelected = $('#device-type').val();
   let statusSelected = $('#device-status').val();
   let daySelected = $('.date-month-view').val();
-  
+
+  if(typeSelected === null || statusSelected === null || daySelected === null){
+    return
+  }
+  $(".popular-device-section").hide();
+  $(".monthly-device-section").show();
+  $(".monthly-device-header").siblings().remove();
   
   let monthArr = monthView(calendarObj, daySelected, typeSelected, statusSelected);
   monthArr.forEach((dayEntry) => {
