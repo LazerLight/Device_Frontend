@@ -8,49 +8,65 @@
     <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-    <select class="getDates">
-        <option class="get-dates-info" disabled selected>Select a date</option>
-    </select> 
+    <section>
+        
+        <div class="popular-div">
+            <p>Select a Day to See the Top Ten Most Used Devices</p>
+            <select class="date-popular-view">
+                <option selected disabled>Select a date</option>
+            </select>             
+        </div>
+        
+        
+        <div class="month-div">
+            
+            <div class="month-view">
+                <p>Select a Type, Status and an End Date to See a Device Count for the Last 30 Days</p>
+                
+                <select name="device-type" id="device-type">
+                    <option value="" disabled selected>Select a Device Type</option>
+                    <option value="sensor">Sensor</option>
+                    <option value="gateway">Gateway</option>
+                </select>
+                <select name="device-status" id="device-status">
+                    <option value="" disabled selected>Select a Device Status</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                </select>
+                <select class="date-month-view">
+                    <option disabled selected>Select a date</option>    
+                </select> 
+                <button>View</button>
+            </div>
+        </div>
+        
+    </section>
+    <br>
+    <br>
     
-    <div class="popular-device-section">
-        <table class="popular-device">
-            <tr class="popular-device-header">
-                <th>Rank</th>
-                <th>Device ID</th>gateway
-                <th>Occurances on Day Selected</th>
-                <th>Relative Change from Same Day Last Week</th>
-            </tr>
-        </table>
-    </div>
+    <br>
     
-    <div class="month-view">
-        <select name="device-type" id="device-type">
-            <option value="" disabled selected>Select a Device Type</option>
-            <option value="sensor">Sensor</option>
-            <option value="gateway">Gateway</option>
-        </select>
-        <select name="device-status" id="device-status">
-            <option value="" disabled selected>Select a Device Status</option>
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-        </select>
-        <select class="date-month-view">
-        <option disabled selected>Select a date</option>
-
-        </select> 
-        <button>View</button>
-    </div>
-    
-    <div class="monthly-device-section">
-        <table class="monthly-device">
-            <tr class="monthly-device-header">
-                <th>Day</th>
-                <th>Total Amount of Devices</th>
-            </tr>
-        </table>
-    </div>
-    <script src="./csv-processing.js"></script>
-    
+    <section>
+        <div class="popular-device-section">
+            <table class="popular-device">
+                <tr class="popular-device-header">
+                    <th>Rank</th>
+                    <th>Device ID</th>
+                    <th>Occurances on Day Selected</th>
+                    <th>Relative Change from Same Day Last Week</th>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="monthly-device-section">
+            <table class="monthly-device">
+                <tr class="monthly-device-header">
+                    <th>Day</th>
+                    <th>Total Amount of Devices</th>
+                </tr>
+            </table>
+        </div>
+    </section>
     <script
     src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="

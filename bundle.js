@@ -5829,6 +5829,74 @@ function config (name) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],30:[function(require,module,exports){
+const Papa = require("papaparse");
+
+
+const parserConfig = {
+    header: true
+};
+
+$(document).ready(() => {
+    $.ajax({
+        url: "http://localhost:8080"
+    })
+    .then(data => {
+        calendarObject = calendarFormat(Papa.parse(data, parserConfig).data);
+    })
+    .fail(err => {
+        console.log("err", err);
+    });
+});
+
+const calendarFormat = (csvFileData) => {
+    const calendarObj = {};
+    csvFileData.forEach(entry => {
+        
+        let date = new Date(new Date(entry.timestamp).setHours(0,0,0,0));
+        let id = entry["id"];
+        let status = entry["status"];
+        let type = entry["type"];
+        
+        
+        if (!(date in calendarObj)) {
+            let typeObj = {'sensor': new Map(), 'gateway': new Map()};
+            let statusObj = {};
+            statusObj[status] = 1;
+            
+            typeObj[type].set(id, statusObj);
+            calendarObj[date] = typeObj
+            return;
+        }
+        
+        let isDevicePresent = calendarObj[date][type].has(id);
+        if (isDevicePresent) {
+            let deviceEvents = calendarObj[date][type].get(id)[status]+1 || 1
+            let statusObj = calendarObj[date][type].get(id)
+            statusObj[status] = deviceEvents
+            calendarObj[date][type].set(id, statusObj)
+        } else {
+            let statusObj = {};
+            statusObj[status] = 1;
+            
+            calendarObj[date][type].set(id, statusObj);
+        }
+    });
+    
+    return calendarObj;
+}
+/*
+Calendar Object Format
+Example: { "Mon Sept 07": { sensor: ["5kfkb3", { online: 2, offline: 3 }] } };
+
+It is an object with the dates as keys. The value are also an object.
+In that object the keys are either 'sensor'  and/or 'gateway'. The values are Map objects, separating each device based on device type.
+In that map object, the keys are device IDs. The value are objects..
+In that object, the keys are either 'online' and/or 'offline' which counts the statuses of that specific device on that day. 
+
+*/
+
+
+},{"papaparse":31}],31:[function(require,module,exports){
 /*@license
 	Papa Parse
 	v4.5.0
@@ -7607,195 +7675,4 @@ function config (name) {
 	return Papa;
 }));
 
-},{"stream":26}],31:[function(require,module,exports){
-const Papa = require("papaparse");
-var calendarObj
-
-
-
-//browserify script.js -o bundle.js
-const parserConfig = {
-  header: true
-};
-
-$(document).ready(() => {
-  $.ajax({
-    url: "http://localhost:8080"
-  })
-  .then(data => {
-    console.log(x)
-    calendarObj = calendarFormat(Papa.parse(data, parserConfig).data);
-  })
-  .fail(err => {
-    console.log("err", err);
-  });
-});
-
-const calendarFormat = (csvFileData) => {
-  const calendarObj = {};
-  csvFileData.forEach(entry => {
-    
-    let date = new Date(new Date(entry.timestamp).setHours(0,0,0,0));
-    let id = entry["id"];
-    let status = entry["status"];
-    let type = entry["type"];
-    
-    
-    if (!(date in calendarObj)) {
-      let typeObj = {'sensor': new Map(), 'gateway': new Map()};
-      let statusObj = {};
-      statusObj[status] = 1;
-      
-      typeObj[type].set(id, statusObj);
-      calendarObj[date] = typeObj
-      return;
-    }
-    
-    let isDevicePresent = calendarObj[date][type].has(id);
-    if (isDevicePresent) {
-      let deviceEvents = calendarObj[date][type].get(id)[status]+1 || 1
-      let statusObj = calendarObj[date][type].get(id)
-      statusObj[status] = deviceEvents
-      calendarObj[date][type].set(id, statusObj)
-    } else {
-      let statusObj = {};
-      statusObj[status] = 1;
-      
-      calendarObj[date][type].set(id, statusObj);
-    }
-  });
-  
-  return calendarObj;
-}
-
-const returnPopularDevices = (calendarObj, date, amount) => {
-  let dayMap = calendarObj[date];
-  let deviceArr = [];
-  dayMap.sensor.forEach((statusObj, id) => {
-    let events = (statusObj.online || 0) + (statusObj.offline || 0);
-    deviceArr.push([{'id': id,'type': 'sensor', 'events': events}])
-  })
-  
-  dayMap.gateway.forEach((statusObj, id) => {
-    let events = (statusObj.online || 0) + (statusObj.offline || 0);
-    deviceArr.push([{'id': id,'type': 'gateway', 'events': events}])
-    
-  })
-  let sortedArray = deviceArr.sort((a, b) => a[0]["events"] < b[0]["events"]);
-  
-  let popularDeviceArray = sortedArray.slice(0, amount);
-  
-  return popularDeviceArray;
-}
-
-const changeFromLastWeek = (calendarObj, thisWeekDate, deviceObj) => {
-  let deviceId = deviceObj.id;
-  let deviceType = deviceObj.type;
-  let deviceEventsThisWeek = deviceObj.events;
-  
-  
-  let lastWeekDateObj = new Date(thisWeekDate);
-  lastWeekDateObj.setDate(lastWeekDateObj.getDate() - 7);
-  let lastWeekDate = lastWeekDateObj.toString();
-  if (calendarObj[lastWeekDate] === undefined || !calendarObj[lastWeekDate][deviceType].has(deviceId)){
-    return 'No Information Found For This Device'
-  }
-  let lastWeekObj = calendarObj[lastWeekDate][deviceType].get(deviceId);
-  
-  let deviceEventsLastWeek = (lastWeekObj.online || 0) + (lastWeekObj.offline || 0);
-  let percentChange = (deviceEventsThisWeek - deviceEventsLastWeek)/deviceEventsLastWeek;
-  return `${Math.floor(percentChange * 100)}%`
-}
-
-$(".getDates").one('click', ()=>{
-  let dateChoices = Object.keys(calendarObj)
-  dateChoices.forEach((date)=>{
-    let day = new Date(date);
-    $(".getDates").append($("<option class='dateInfo'/>").val(date).text(day.toDateString()));
-  })
-})
-
-$(".date-month-view").one('click', ()=>{
-  let dateChoices = Object.keys(calendarObj)
-  dateChoices.forEach((date)=>{
-    let day = new Date(date);
-    $(".date-month-view").append($("<option class='dateInfo'/>").val(date).text(day.toDateString()));
-  })
-})
-
-const populateDeviceHTML = (entry, ranking, change) => {
-  $(".popular-device").append(
-    `<tr><td>${ranking}</td>
-    <td>${entry[0].id}</td>
-    <td>${entry[0].events}</td>
-    <td>${change}</td></tr>`
-  )
-}
-
-const populateMonthHTML = (day, amount) => {
-  $(".monthly-device").append(
-    `<tr><td>${day}</td>
-    <td>${amount}</td></tr>`
-  )
-}
-
-$(document).on('click', 'option.get-dates-info', (event)=>{
-  $(".popular-device-section").show();
-  $(".monthly-device-section").hide();
-  $(".popular-device-header").siblings().remove();
-  
-  const dateSelected = event.target.value;
-  let topNDevices = 10;
-  let thisWeekTopTen = returnPopularDevices(calendarObj, dateSelected, topNDevices);
-  
-  thisWeekTopTen.forEach((deviceEntry) =>{
-    let rank = thisWeekTopTen.indexOf(deviceEntry) + 1;
-    let percentChange = changeFromLastWeek(calendarObj, dateSelected, deviceEntry[0]);
-    populateDeviceHTML(deviceEntry, rank, percentChange);
-  })
-});
-
-$('.month-view button').click((event)=>{
- 
-  let typeSelected = $('#device-type').val();
-  let statusSelected = $('#device-status').val();
-  let daySelected = $('.date-month-view').val();
-
-  if(typeSelected === null || statusSelected === null || daySelected === null){
-    return
-  }
-  $(".popular-device-section").hide();
-  $(".monthly-device-section").show();
-  $(".monthly-device-header").siblings().remove();
-  
-  let monthArr = monthView(calendarObj, daySelected, typeSelected, statusSelected);
-  monthArr.forEach((dayEntry) => {
-    populateMonthHTML(dayEntry.date, dayEntry.deviceAmount)
-  })
-
-})
-
-const monthView = (calendarObj, endDate, deviceType, deviceStatus) =>{
-  const dayCollector = [];
-  
-  for(let day = 0; day < 30; day++){
-    let dateObj = new Date(endDate);
-    dateObj.setDate(dateObj.getDate() - day);
-    let date = dateObj.toString();
-    
-    if(calendarObj[date]){
-      let deviceOfTypeUsed = calendarObj[date][deviceType]
-      var deviceCounter = 0;
-      deviceOfTypeUsed.forEach((statusObj, deviceId) => {
-        if(statusObj[deviceStatus] > 0){
-          deviceCounter++
-        }
-      })
-    } else{
-      deviceCounter = 'No records found for this day.'
-    }
-    dayCollector.push({'deviceAmount' : deviceCounter, 'date': dateObj.toDateString()})
-  }
-  return dayCollector
-}
-},{"papaparse":30}]},{},[31]);
+},{"stream":26}]},{},[30]);

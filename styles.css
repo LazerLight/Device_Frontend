@@ -1,9 +1,32 @@
+body{
+    max-width: 1300px;
+    margin: 0 auto;
+}
 .popular-device-section,
 .monthly-device-section
 {
     display: none;
+    margin: 0 auto;
+    /* width: 500px; */
+}
+.popular-device,
+.monthly-device{
+    margin: 0 auto;
+
+}
+.popular-div,
+.month-div{
+    width: 50%;
+    float: left;
+    border: 1px solid black;
+    box-sizing: border-box;
 }
 
+.popular-div *,
+.month-div *{
+    text-align: center;
+
+}
 table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
